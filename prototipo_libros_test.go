@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/Jarod-CG/Prototipo_Libros/dbaccess"
+	"github.com/Jarod-CG/Prototipo_Libros/process"
 	"github.com/Jarod-CG/Prototipo_Libros/structs"
 	"github.com/valyala/fasthttp"
 )
@@ -19,6 +21,9 @@ func TestNeo4j(t *testing.T) {
 }
 
 func TestCreateAuthor(t *testing.T) {
+
+	go main()
+	time.Sleep(10 * time.Second)
 
 	requests := []structs.CreateAuthorReq{
 		{Name: "test", DateOfBirth: "1900-01-01"},
@@ -80,4 +85,29 @@ func doPost(uri string, body interface{}) ([]byte, error) {
 	}
 
 	return resp.Body(), nil
+}
+
+func TestValidateRequest(t *testing.T) {
+
+	strct := []struct {
+		Name  string
+		Age   int
+		Heigh float64
+		Alive bool
+	}{
+		{Name: "jarod", Age: 22, Heigh: 179.00000, Alive: false},
+		{Name: "jarod", Age: -22, Heigh: 179.00000, Alive: false},
+		{Name: "jarod", Age: 22, Heigh: -179.00000, Alive: false},
+		{Name: "", Age: 22, Heigh: 179.00000, Alive: false},
+	}
+
+	for _, st := range strct {
+
+		bytes, _ := json.Marshal(st)
+
+		msg, _ := process.ValidateRequest(st)
+
+		fmt.Printf("%s response %s\n", bytes, msg)
+	}
+
 }

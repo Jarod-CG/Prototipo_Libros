@@ -1,2 +1,0 @@
-username: neo4j
-pass: r3991OpjsOq-EROz8QucIDQ_JQuTOIVasNvHEQrF7TM

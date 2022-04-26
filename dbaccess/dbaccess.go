@@ -3,13 +3,8 @@ package dbaccess
 import (
 	"fmt"
 
+	"github.com/Jarod-CG/Prototipo_Libros/structs"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
-)
-
-const (
-	userName = "neo4j"
-	password = "r3991OpjsOq-EROz8QucIDQ_JQuTOIVasNvHEQrF7TM"
-	uri      = "neo4j+s://17f58f7e.databases.neo4j.io"
 )
 
 var (
@@ -18,8 +13,8 @@ var (
 
 func getDriver() *neo4j.Driver {
 	if driver == nil {
-		auth := neo4j.BasicAuth(userName, password, "")
-		driverI, err := neo4j.NewDriver(uri, auth)
+		auth := neo4j.BasicAuth(structs.Config.Username, structs.Config.Password, "")
+		driverI, err := neo4j.NewDriver(structs.Config.Uri, auth)
 		if err != nil {
 			panic(err)
 		}
@@ -31,11 +26,11 @@ func getDriver() *neo4j.Driver {
 func TestNeo4j() {
 	// Aura requires you to use "neo4j+s" protocol
 	// (You need to replace your connection details, username and password)
-	auth := neo4j.BasicAuth(userName, password, "")
+	auth := neo4j.BasicAuth(structs.Config.Username, structs.Config.Password, "")
 	// You typically have one driver instance for the entire application. The
 	// driver maintains a pool of database connections to be used by the sessions.
 	// The driver is thread safe.
-	driver, err := neo4j.NewDriver(uri, auth)
+	driver, err := neo4j.NewDriver(structs.Config.Uri, auth)
 	if err != nil {
 		panic(err)
 	}
@@ -138,7 +133,7 @@ func CreateAuthor(authorName, birth string) {
 	}
 }
 
-func CreateBook(authorName, bookName, topic, date string, price float32, quantity int) {
+func CreateBook(authorName, bookName, topic, date string, price float64, quantity int) {
 	dr := *getDriver()
 	session := dr.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
@@ -260,7 +255,7 @@ func WatchAuthor(readerName, authorName string) {
 			`
 			result, err := tx.Run(query, map[string]interface{}{
 				"readerName": readerName,
-				"authorName":   authorName})
+				"authorName": authorName})
 			if err != nil {
 				return nil, err
 			}
@@ -296,3 +291,25 @@ func WatchBook(readerName, bookName string) {
 	}
 }
 
+func CleanDB() {
+	dr := *getDriver()
+	session := dr.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+
+	_, err := session.WriteTransaction(
+		func(tx neo4j.Transaction) (interface{}, error) {
+			query := `
+			MATCH (r:Reader{Name:$readerName})
+			MATCH (b:Book{Name: $bookName}) 
+			CREATE (r)-[:WATCH{Date:date()}]->(b)
+			`
+			result, err := tx.Run(query, map[string]interface{}{})
+			if err != nil {
+				return nil, err
+			}
+			return result.Collect()
+		})
+	if err != nil {
+		panic(err)
+	}
+}
