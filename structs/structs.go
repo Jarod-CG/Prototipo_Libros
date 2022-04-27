@@ -84,3 +84,30 @@ type CleanDBReq struct {
 type CleanDBResp struct {
 	response
 }
+
+type WatchedAuthorByReaderReq struct {
+	ReaderName string `json:"ReaderName,omitempty"`
+}
+
+type WatchedAuthorByReaderResp struct {
+	response
+	AuthorNames []string `json:"AuthorNames,omitempty"`
+}
+
+type AuthorByTopicReq struct {
+	Topic string `json:"ReaderName,Topic"`
+}
+
+type AuthorByTopicResp struct {
+	response
+	AuthorNames []string `json:"AuthorNames,omitempty"`
+}
+
+type ReadersByAuthorReq struct {
+	AuthorName string `json:"AuthorName,Topic"`
+}
+
+type ReadersByAuthorResp struct {
+	response
+	AuthorNames []string `json:"AuthorNames,omitempty"`
+}

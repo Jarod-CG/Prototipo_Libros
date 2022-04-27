@@ -13,9 +13,14 @@ func CreateAuthor(req *structs.CreateAuthorReq, resp *structs.CreateAuthorResp) 
 
 	msg, isValid := ValidateRequest(*req)
 	if isValid {
-		dbaccess.CreateAuthor(req.Name, req.DateOfBirth)
-		resp.Success = true
-		resp.Msg = "all good"
+		msg = dbaccess.CreateAuthor(req.Name, req.DateOfBirth)
+		if len(strings.TrimSpace(msg)) == 0 {
+			resp.Success = true
+			resp.Msg = msg
+		} else {
+			resp.Success = false
+			resp.Msg = msg
+		}
 	} else {
 		resp.Success = isValid
 		resp.Msg = msg
@@ -26,9 +31,14 @@ func CreateAuthor(req *structs.CreateAuthorReq, resp *structs.CreateAuthorResp) 
 func CreateBook(req *structs.CreateBookReq, resp *structs.CreateBookResp) {
 	msg, isValid := ValidateRequest(*req)
 	if isValid {
-		dbaccess.CreateBook(req.AuthorName, req.BookName, req.Topic, req.Date, req.Price, req.Quantity)
-		resp.Success = true
-		resp.Msg = "all good"
+		msg = dbaccess.CreateBook(req.AuthorName, req.BookName, req.Topic, req.Date, req.Price, req.Quantity)
+		if len(strings.TrimSpace(msg)) == 0 {
+			resp.Success = true
+			resp.Msg = msg
+		} else {
+			resp.Success = false
+			resp.Msg = msg
+		}
 	} else {
 		resp.Success = isValid
 		resp.Msg = msg
@@ -39,9 +49,14 @@ func CreateBook(req *structs.CreateBookReq, resp *structs.CreateBookResp) {
 func CreateReader(req *structs.CreateReaderReq, resp *structs.CreateReaderResp) {
 	msg, isValid := ValidateRequest(*req)
 	if isValid {
-		dbaccess.CreateReader(req.ReaderName)
-		resp.Success = true
-		resp.Msg = "all good"
+		msg = dbaccess.CreateReader(req.ReaderName)
+		if len(strings.TrimSpace(msg)) == 0 {
+			resp.Success = true
+			resp.Msg = msg
+		} else {
+			resp.Success = false
+			resp.Msg = msg
+		}
 	} else {
 		resp.Success = isValid
 		resp.Msg = msg
@@ -51,9 +66,14 @@ func CreateReader(req *structs.CreateReaderReq, resp *structs.CreateReaderResp) 
 func OrderBook(req *structs.OrderBookReq, resp *structs.OrderBookResp) {
 	msg, isValid := ValidateRequest(*req)
 	if isValid {
-		dbaccess.OrderBook(req.ReaderName, req.BookName)
-		resp.Success = true
-		resp.Msg = "all good"
+		msg = dbaccess.OrderBook(req.ReaderName, req.BookName)
+		if len(strings.TrimSpace(msg)) == 0 {
+			resp.Success = true
+			resp.Msg = msg
+		} else {
+			resp.Success = false
+			resp.Msg = msg
+		}
 	} else {
 		resp.Success = isValid
 		resp.Msg = msg
@@ -63,9 +83,14 @@ func OrderBook(req *structs.OrderBookReq, resp *structs.OrderBookResp) {
 func BuyBook(req *structs.BuyBookReq, resp *structs.BuyBookResp) {
 	msg, isValid := ValidateRequest(*req)
 	if isValid {
-		dbaccess.BuyBook(req.ReaderName, req.BookName)
-		resp.Success = true
-		resp.Msg = "all good"
+		msg = dbaccess.BuyBook(req.ReaderName, req.BookName)
+		if len(strings.TrimSpace(msg)) == 0 {
+			resp.Success = true
+			resp.Msg = msg
+		} else {
+			resp.Success = false
+			resp.Msg = msg
+		}
 	} else {
 		resp.Success = isValid
 		resp.Msg = msg
@@ -75,9 +100,14 @@ func BuyBook(req *structs.BuyBookReq, resp *structs.BuyBookResp) {
 func WatchAuthor(req *structs.WatchAuthorReq, resp *structs.WatchAuthorResp) {
 	msg, isValid := ValidateRequest(*req)
 	if isValid {
-		dbaccess.WatchAuthor(req.ReaderName, req.AuthorName)
-		resp.Success = true
-		resp.Msg = "all good"
+		msg = dbaccess.WatchAuthor(req.ReaderName, req.AuthorName)
+		if len(strings.TrimSpace(msg)) == 0 {
+			resp.Success = true
+			resp.Msg = msg
+		} else {
+			resp.Success = false
+			resp.Msg = msg
+		}
 	} else {
 		resp.Success = isValid
 		resp.Msg = msg
@@ -87,9 +117,14 @@ func WatchAuthor(req *structs.WatchAuthorReq, resp *structs.WatchAuthorResp) {
 func WatchBook(req *structs.WatchBookReq, resp *structs.WatchBookResp) {
 	msg, isValid := ValidateRequest(*req)
 	if isValid {
-		dbaccess.WatchBook(req.ReaderName, req.BookName)
-		resp.Success = true
-		resp.Msg = "all good"
+		msg = dbaccess.WatchBook(req.ReaderName, req.BookName)
+		if len(strings.TrimSpace(msg)) == 0 {
+			resp.Success = true
+			resp.Msg = msg
+		} else {
+			resp.Success = false
+			resp.Msg = msg
+		}
 	} else {
 		resp.Success = isValid
 		resp.Msg = msg
@@ -99,7 +134,14 @@ func WatchBook(req *structs.WatchBookReq, resp *structs.WatchBookResp) {
 func CleanDB(req *structs.CleanDBReq, resp *structs.CleanDBResp) {
 	msg, isValid := ValidateRequest(*req)
 	if isValid {
-		dbaccess.CleanDB()
+		msg = dbaccess.CleanDB()
+		if len(strings.TrimSpace(msg)) == 0 {
+			resp.Success = true
+			resp.Msg = msg
+		} else {
+			resp.Success = false
+			resp.Msg = msg
+		}
 		resp.Success = true
 		resp.Msg = "all good"
 	} else {
@@ -108,10 +150,64 @@ func CleanDB(req *structs.CleanDBReq, resp *structs.CleanDBResp) {
 	}
 }
 
-func ValidateRequest(req interface{}) (string, bool) {
-	t := reflect.TypeOf(req).Name()
+func WatchedAuthorByReader(req *structs.WatchedAuthorByReaderReq, resp *structs.WatchedAuthorByReaderResp) {
+	msg, isValid := ValidateRequest(*req)
+	if isValid {
+		list, msg := dbaccess.WatchedAuthorByReader(req.ReaderName)
+		if len(strings.TrimSpace(msg)) == 0 {
+			resp.Success = true
+			resp.Msg = msg
+			resp.AuthorNames = list
+		} else {
+			resp.Success = false
+			resp.Msg = msg
+			resp.AuthorNames = nil
+		}
+	} else {
+		resp.Success = isValid
+		resp.Msg = msg
+	}
+}
 
-	fmt.Println(t)
+func AuthorByTopic(req *structs.AuthorByTopicReq, resp *structs.AuthorByTopicResp) {
+	msg, isValid := ValidateRequest(*req)
+	if isValid {
+		list, msg := dbaccess.AuthorByTopic(req.Topic)
+		if len(strings.TrimSpace(msg)) == 0 {
+			resp.Success = true
+			resp.Msg = msg
+			resp.AuthorNames = list
+		} else {
+			resp.Success = false
+			resp.Msg = msg
+			resp.AuthorNames = nil
+		}
+	} else {
+		resp.Success = isValid
+		resp.Msg = msg
+	}
+}
+
+func ReadersByAuthor(req *structs.ReadersByAuthorReq, resp *structs.ReadersByAuthorResp) {
+	msg, isValid := ValidateRequest(*req)
+	if isValid {
+		list, msg := dbaccess.ReadersByAuthor(req.AuthorName)
+		if len(strings.TrimSpace(msg)) == 0 {
+			resp.Success = true
+			resp.Msg = msg
+			resp.AuthorNames = list
+		} else {
+			resp.Success = false
+			resp.Msg = msg
+			resp.AuthorNames = nil
+		}
+	} else {
+		resp.Success = isValid
+		resp.Msg = msg
+	}
+}
+
+func ValidateRequest(req interface{}) (string, bool) {
 	v := reflect.ValueOf(req)
 
 	num := v.NumField()

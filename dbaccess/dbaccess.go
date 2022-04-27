@@ -106,7 +106,7 @@ func TestNeo4j() {
 	}
 }
 
-func CreateAuthor(authorName, birth string) {
+func CreateAuthor(authorName, birth string) (msg string) {
 	dr := *getDriver()
 	session := dr.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
@@ -114,9 +114,7 @@ func CreateAuthor(authorName, birth string) {
 	_, err := session.WriteTransaction(
 		func(tx neo4j.Transaction) (interface{}, error) {
 			query := `
-				CREATE (a:Author 
-					{Name: $name, DateOfBirth: $birth}
-					) 
+				CREATE (a:Author {Name: $name, DateOfBirth: $birth}) 
 				RETURN a.Name AS Name, a.DateOfBirth AS DateOfBirth`
 
 			result, err := tx.Run(query, map[string]interface{}{
@@ -129,11 +127,12 @@ func CreateAuthor(authorName, birth string) {
 			return result.Collect()
 		})
 	if err != nil {
-		panic(err)
+		return err.Error()
 	}
+	return ""
 }
 
-func CreateBook(authorName, bookName, topic, date string, price float64, quantity int) {
+func CreateBook(authorName, bookName, topic, date string, price float64, quantity int) (msg string) {
 	dr := *getDriver()
 	session := dr.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
@@ -160,11 +159,12 @@ func CreateBook(authorName, bookName, topic, date string, price float64, quantit
 			return result.Collect()
 		})
 	if err != nil {
-		panic(err)
+		return err.Error()
 	}
+	return ""
 }
 
-func CreateReader(readerName string) {
+func CreateReader(readerName string) (msg string) {
 	dr := *getDriver()
 	session := dr.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
@@ -185,11 +185,12 @@ func CreateReader(readerName string) {
 			return result.Collect()
 		})
 	if err != nil {
-		panic(err)
+		return err.Error()
 	}
+	return ""
 }
 
-func OrderBook(readerName, bookName string) {
+func OrderBook(readerName, bookName string) (msg string) {
 	dr := *getDriver()
 	session := dr.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
@@ -210,11 +211,12 @@ func OrderBook(readerName, bookName string) {
 			return result.Collect()
 		})
 	if err != nil {
-		panic(err)
+		return err.Error()
 	}
+	return ""
 }
 
-func BuyBook(readerName, bookName string) {
+func BuyBook(readerName, bookName string) (msg string) {
 	dr := *getDriver()
 	session := dr.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
@@ -237,11 +239,12 @@ func BuyBook(readerName, bookName string) {
 			return result.Collect()
 		})
 	if err != nil {
-		panic(err)
+		return err.Error()
 	}
+	return ""
 }
 
-func WatchAuthor(readerName, authorName string) {
+func WatchAuthor(readerName, authorName string) (msg string) {
 	dr := *getDriver()
 	session := dr.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
@@ -262,11 +265,12 @@ func WatchAuthor(readerName, authorName string) {
 			return result.Collect()
 		})
 	if err != nil {
-		panic(err)
+		return err.Error()
 	}
+	return ""
 }
 
-func WatchBook(readerName, bookName string) {
+func WatchBook(readerName, bookName string) (msg string) {
 	dr := *getDriver()
 	session := dr.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
@@ -287,11 +291,12 @@ func WatchBook(readerName, bookName string) {
 			return result.Collect()
 		})
 	if err != nil {
-		panic(err)
+		return err.Error()
 	}
+	return ""
 }
 
-func CleanDB() {
+func CleanDB() (msg string) {
 	dr := *getDriver()
 	session := dr.NewSession(neo4j.SessionConfig{})
 	defer session.Close()
@@ -299,9 +304,10 @@ func CleanDB() {
 	_, err := session.WriteTransaction(
 		func(tx neo4j.Transaction) (interface{}, error) {
 			query := `
-			MATCH (r:Reader{Name:$readerName})
-			MATCH (b:Book{Name: $bookName}) 
-			CREATE (r)-[:WATCH{Date:date()}]->(b)
+			MATCH (r:Reader)
+			MATCH (a:Author)
+			MATCH (b:Book)
+			DETACH DELETE r, a, b
 			`
 			result, err := tx.Run(query, map[string]interface{}{})
 			if err != nil {
@@ -310,6 +316,91 @@ func CleanDB() {
 			return result.Collect()
 		})
 	if err != nil {
-		panic(err)
+		return err.Error()
 	}
+	return ""
+}
+
+func WatchedAuthorByReader(readerName string) (list []string, msg string) {
+	dr := *getDriver()
+	session := dr.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+
+	_, err := session.ReadTransaction(
+		func(tx neo4j.Transaction) (interface{}, error) {
+			query := `
+			MATCH (r:Reader {Name: $readerName})-[w:WATCH]-(a:Author) 
+			RETURN a.Name AS Name
+			`
+			result, err := tx.Run(query, map[string]interface{}{
+				"readerName": readerName,
+			})
+			if err != nil {
+				return nil, err
+			}
+			for result.Next() {
+				list = append(list, result.Record().Values[0].(string))
+			}
+			return result.Collect()
+		})
+	if err != nil {
+		return list, err.Error()
+	}
+	return list, msg
+}
+
+func AuthorByTopic(topic string) (list []string, msg string) {
+	dr := *getDriver()
+	session := dr.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+
+	_, err := session.ReadTransaction(
+		func(tx neo4j.Transaction) (interface{}, error) {
+			query := `
+			MATCH (a:Author)-[w:WRITE]-(b:Book {Topic: $topic})
+			RETURN DISTINCT a.Name AS Name
+			`
+			result, err := tx.Run(query, map[string]interface{}{
+				"topic": topic,
+			})
+			if err != nil {
+				return nil, err
+			}
+			for result.Next() {
+				list = append(list, result.Record().Values[0].(string))
+			}
+			return result.Collect()
+		})
+	if err != nil {
+		return list, err.Error()
+	}
+	return list, msg
+}
+
+func ReadersByAuthor(authorName string) (list []string, msg string) {
+	dr := *getDriver()
+	session := dr.NewSession(neo4j.SessionConfig{})
+	defer session.Close()
+
+	_, err := session.ReadTransaction(
+		func(tx neo4j.Transaction) (interface{}, error) {
+			query := `
+			MATCH (r:Reader)-[bu:BUY]-(b:Book)-[w:WRITE]-(a:Author {Name: $authorName }) 
+			RETURN DISTINCT r .Name AS Name
+			`
+			result, err := tx.Run(query, map[string]interface{}{
+				"authorName": authorName,
+			})
+			if err != nil {
+				return nil, err
+			}
+			for result.Next() {
+				list = append(list, result.Record().Values[0].(string))
+			}
+			return result.Collect()
+		})
+	if err != nil {
+		return list, err.Error()
+	}
+	return list, msg
 }

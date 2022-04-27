@@ -33,7 +33,11 @@ func main() {
 	router.POST("/BuyBook", BuyBook)
 	router.POST("/WatchAuthor", WatchAuthor)
 	router.POST("/WatchBook", WatchBook)
+
 	router.POST("/CleanDB", CleanDB)
+	router.POST("/WatchedAuthorByReader", WatchedAuthorByReader)
+	router.POST("/AuthorByTopic", AuthorByTopic)
+	router.POST("/ReadersByAuthor", ReadersByAuthor)
 
 	fmt.Printf("server starsted at port '%d'\n", structs.Config.Port)
 
@@ -51,7 +55,8 @@ func CreateAuthor(ctx *fasthttp.RequestCtx) {
 
 	err := json.Unmarshal(ctx.Request.Body(), &request)
 	if err != nil {
-		fmt.Println(err.Error())
+		response.Msg = err.Error()
+		response.Success = false
 	} else {
 		process.CreateAuthor(&request, &response)
 	}
@@ -73,9 +78,10 @@ func CreateBook(ctx *fasthttp.RequestCtx) {
 
 	response = structs.CreateBookResp{}
 
-	err := json.Unmarshal(ctx.Request.Body(), request)
+	err := json.Unmarshal(ctx.Request.Body(), &request)
 	if err != nil {
-		fmt.Println(err.Error())
+		response.Msg = err.Error()
+		response.Success = false
 	} else {
 		process.CreateBook(&request, &response)
 	}
@@ -96,9 +102,10 @@ func CreateReader(ctx *fasthttp.RequestCtx) {
 
 	response = structs.CreateReaderResp{}
 
-	err := json.Unmarshal(ctx.Request.Body(), request)
+	err := json.Unmarshal(ctx.Request.Body(), &request)
 	if err != nil {
-		fmt.Println(err.Error())
+		response.Msg = err.Error()
+		response.Success = false
 	} else {
 		process.CreateReader(&request, &response)
 	}
@@ -119,9 +126,10 @@ func OrderBook(ctx *fasthttp.RequestCtx) {
 
 	response = structs.OrderBookResp{}
 
-	err := json.Unmarshal(ctx.Request.Body(), request)
+	err := json.Unmarshal(ctx.Request.Body(), &request)
 	if err != nil {
-		fmt.Println(err.Error())
+		response.Msg = err.Error()
+		response.Success = false
 	} else {
 		process.OrderBook(&request, &response)
 	}
@@ -136,17 +144,18 @@ func OrderBook(ctx *fasthttp.RequestCtx) {
 
 func BuyBook(ctx *fasthttp.RequestCtx) {
 	var (
-		request  structs.CreateAuthorReq
-		response structs.CreateAuthorResp
+		request  structs.BuyBookReq
+		response structs.BuyBookResp
 	)
 
-	response = structs.CreateAuthorResp{}
+	response = structs.BuyBookResp{}
 
-	err := json.Unmarshal(ctx.Request.Body(), request)
+	err := json.Unmarshal(ctx.Request.Body(), &request)
 	if err != nil {
-		fmt.Println(err.Error())
+		response.Msg = err.Error()
+		response.Success = false
 	} else {
-		process.CreateAuthor(&request, &response)
+		process.BuyBook(&request, &response)
 	}
 
 	bytes, err := json.Marshal(response)
@@ -165,9 +174,10 @@ func WatchAuthor(ctx *fasthttp.RequestCtx) {
 
 	response = structs.WatchAuthorResp{}
 
-	err := json.Unmarshal(ctx.Request.Body(), request)
+	err := json.Unmarshal(ctx.Request.Body(), &request)
 	if err != nil {
-		fmt.Println(err.Error())
+		response.Msg = err.Error()
+		response.Success = false
 	} else {
 		process.WatchAuthor(&request, &response)
 	}
@@ -182,17 +192,18 @@ func WatchAuthor(ctx *fasthttp.RequestCtx) {
 
 func WatchBook(ctx *fasthttp.RequestCtx) {
 	var (
-		request  structs.CreateAuthorReq
-		response structs.CreateAuthorResp
+		request  structs.WatchBookReq
+		response structs.WatchBookResp
 	)
 
-	response = structs.CreateAuthorResp{}
+	response = structs.WatchBookResp{}
 
-	err := json.Unmarshal(ctx.Request.Body(), request)
+	err := json.Unmarshal(ctx.Request.Body(), &request)
 	if err != nil {
-		fmt.Println(err.Error())
+		response.Msg = err.Error()
+		response.Success = false
 	} else {
-		process.CreateAuthor(&request, &response)
+		process.WatchBook(&request, &response)
 	}
 
 	bytes, err := json.Marshal(response)
@@ -211,11 +222,83 @@ func CleanDB(ctx *fasthttp.RequestCtx) {
 
 	response = structs.CleanDBResp{}
 
-	err := json.Unmarshal(ctx.Request.Body(), request)
+	err := json.Unmarshal(ctx.Request.Body(), &request)
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
 		process.CleanDB(&request, &response)
+	}
+
+	bytes, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		ctx.Response.SetBody(bytes)
+	}
+}
+
+func WatchedAuthorByReader(ctx *fasthttp.RequestCtx) {
+	var (
+		request  structs.WatchedAuthorByReaderReq
+		response structs.WatchedAuthorByReaderResp
+	)
+
+	response = structs.WatchedAuthorByReaderResp{}
+
+	err := json.Unmarshal(ctx.Request.Body(), &request)
+	if err != nil {
+		response.Msg = err.Error()
+		response.Success = false
+	} else {
+		process.WatchedAuthorByReader(&request, &response)
+	}
+
+	bytes, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		ctx.Response.SetBody(bytes)
+	}
+}
+
+func AuthorByTopic(ctx *fasthttp.RequestCtx) {
+	var (
+		request  structs.AuthorByTopicReq
+		response structs.AuthorByTopicResp
+	)
+
+	response = structs.AuthorByTopicResp{}
+
+	err := json.Unmarshal(ctx.Request.Body(), &request)
+	if err != nil {
+		response.Msg = err.Error()
+		response.Success = false
+	} else {
+		process.AuthorByTopic(&request, &response)
+	}
+
+	bytes, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		ctx.Response.SetBody(bytes)
+	}
+}
+
+func ReadersByAuthor(ctx *fasthttp.RequestCtx) {
+	var (
+		request  structs.ReadersByAuthorReq
+		response structs.ReadersByAuthorResp
+	)
+
+	response = structs.ReadersByAuthorResp{}
+
+	err := json.Unmarshal(ctx.Request.Body(), &request)
+	if err != nil {
+		response.Msg = err.Error()
+		response.Success = false
+	} else {
+		process.ReadersByAuthor(&request, &response)
 	}
 
 	bytes, err := json.Marshal(response)
